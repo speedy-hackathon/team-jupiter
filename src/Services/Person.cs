@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using covidSim.Models;
 
 namespace covidSim.Services
@@ -51,11 +52,18 @@ namespace covidSim.Services
 
         private void CalcNextPositionForWalkingPerson()
         {
+            var nextPosition = new Vec(0, 0);
+
             var xLength = random.Next(MaxDistancePerTurn);
             var yLength = MaxDistancePerTurn - xLength;
-            var direction = ChooseDirection();
-            var delta = new Vec(xLength * direction.X, yLength * direction.Y);
-            var nextPosition = new Vec(Position.X + delta.X, Position.Y + delta.Y);
+            foreach (var direction in ChooseDirection())
+            {
+                var delta = new Vec(xLength * direction.X, yLength * direction.Y);
+                nextPosition = new Vec(Position.X + delta.X, Position.Y + delta.Y);
+                if (IsCorrectPosition(nextPosition))
+                    break;
+            }
+
 
             if (isCoordInField(nextPosition))
             {
@@ -67,11 +75,21 @@ namespace covidSim.Services
             }
         }
 
+        private bool IsCorrectPosition(Vec pos)
+        {
+            return !Game.Instance.Map.Houses.Where((x, i) => i != HomeId)
+                .Any(x => x.Coordinates.LeftTopCorner.X < pos.X
+                          && x.Coordinates.LeftTopCorner.X + HouseCoordinates.Width > pos.X
+                          && x.Coordinates.LeftTopCorner.Y < pos.Y
+                          && x.Coordinates.LeftTopCorner.Y + HouseCoordinates.Height > pos.Y);
+        }
+
         private void CalcNextPositionForGoingHomePerson()
         {
             var game = Game.Instance;
             var homeCoord = game.Map.Houses[HomeId].Coordinates.LeftTopCorner;
-            var homeCenter = new Vec(homeCoord.X + HouseCoordinates.Width / 2, homeCoord.Y + HouseCoordinates.Height / 2);
+            var homeCenter = new Vec(homeCoord.X + HouseCoordinates.Width / 2,
+                homeCoord.Y + HouseCoordinates.Height / 2);
 
             var xDiff = homeCenter.X - Position.X;
             var yDiff = homeCenter.Y - Position.Y;
@@ -88,7 +106,7 @@ namespace covidSim.Services
 
             var direction = new Vec(Math.Sign(xDiff), Math.Sign(yDiff));
 
-            var xLength = Math.Min(xDistance, MaxDistancePerTurn); 
+            var xLength = Math.Min(xDistance, MaxDistancePerTurn);
             var newX = Position.X + xLength * direction.X;
             var yLength = MaxDistancePerTurn - xLength;
             var newY = Position.Y + yLength * direction.Y;
@@ -103,7 +121,7 @@ namespace covidSim.Services
             CalcNextPositionForGoingHomePerson();
         }
 
-        private Vec ChooseDirection()
+        private Vec[] ChooseDirection()
         {
             var directions = new Vec[]
             {
@@ -112,8 +130,7 @@ namespace covidSim.Services
                 new Vec(1, -1),
                 new Vec(1, 1),
             };
-            var index = random.Next(directions.Length);
-            return directions[index];
+            return directions.OrderBy(x => random.Next()).ToArray();
         }
 
         private bool isCoordInField(Vec vec)
