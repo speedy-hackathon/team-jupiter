@@ -6,11 +6,16 @@ namespace covidSim.Services
 {
     public class Person
     {
+        public Vec HomeCoords;
+        public int HomeId;
+        public int Id;
+        public Vec Position;
+
         private const int MaxDistancePerTurn = 30;
-        private static Random random = new Random();
-        private PersonState state = PersonState.AtHome;
-        private int sickTurns;
         private const int MaxSickTurns = 45;
+        private static readonly Random random = new Random();
+        private int sickTurns;
+        private PersonState state = PersonState.AtHome;
         private int stepsInHome;
 
         public Person(int id, int homeId, CityMap map)
@@ -25,11 +30,6 @@ namespace covidSim.Services
             IsSick = random.NextDouble() < 0.05;
             stepsInHome = 0;
         }
-
-        public int Id;
-        public int HomeId;
-        public Vec Position;
-        public Vec HomeCoords;
 
         public bool IsBored
         {
@@ -101,22 +101,17 @@ namespace covidSim.Services
 
 
             if (isCoordInField(nextPosition))
-            {
                 Position = nextPosition;
-            }
             else
-            {
                 CalcNextPositionForWalkingPerson();
-            }
         }
 
         private void CalcSickStateForWalkingPerson()
         {
             if (IsSick)
                 return;
-            var closePersons = Game.Instance.People.Where(other => this.Distance(other) < 7);
-            var sickClosePersons =
-                closePersons.Count(other => other.IsSick);
+            var closePersons = Game.Instance.People.Where(other => GetDistanceTo(other) < 7);
+            var sickClosePersons = closePersons.Count(other => other.IsSick);
             for (var i = 0; i < sickClosePersons; i++)
             {
                 if (random.Next() % 2 != 0) continue;
@@ -125,7 +120,7 @@ namespace covidSim.Services
             }
         }
 
-        private double Distance(Person other)
+        private double GetDistanceTo(Person other)
         {
             return Math.Sqrt((Position.X - other.Position.X) * (Position.X - other.Position.X) +
                              (Position.Y - other.Position.Y) * (Position.Y - other.Position.Y));
@@ -179,12 +174,12 @@ namespace covidSim.Services
 
         private Vec[] ChooseDirection()
         {
-            var directions = new Vec[]
+            var directions = new[]
             {
                 new Vec(-1, -1),
                 new Vec(-1, 1),
                 new Vec(1, -1),
-                new Vec(1, 1),
+                new Vec(1, 1)
             };
             return directions.OrderBy(x => random.Next()).ToArray();
         }
