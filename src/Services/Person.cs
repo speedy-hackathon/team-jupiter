@@ -18,11 +18,13 @@ namespace covidSim.Services
             var x = homeCoords.X + random.Next(HouseCoordinates.Width);
             var y = homeCoords.Y + random.Next(HouseCoordinates.Height);
             Position = new Vec(x, y);
+            IsSick = random.NextDouble() < 0.005;
         }
 
         public int Id;
         public int HomeId;
         public Vec Position;
+        public bool IsSick;
 
         public void CalcNextStep()
         {
