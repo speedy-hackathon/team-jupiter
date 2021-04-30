@@ -5,5 +5,7 @@ namespace covidSim.Services
         AtHome,
         Walking,
         GoingHome,
+        GoingShop,
+        AtShop
     }
 }

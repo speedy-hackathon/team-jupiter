@@ -2,15 +2,13 @@ using covidSim.Models.Enums;
 
 namespace covidSim.Models
 {
-    public class House : Building
+    public class Shop : Building
     {
-        public House(int id, Vec cornerCoordinates)
+        public Shop(int id, Vec cornerCoordinates)
         {
             Id = id;
             Coordinates = new BuildingCoordinates(cornerCoordinates);
-            BuildingType = BuildingType.House;
+            BuildingType = BuildingType.Shop;
         }
-
-        public int ResidentCount = 0;
     }
 }
