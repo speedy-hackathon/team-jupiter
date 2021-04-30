@@ -1,8 +1,8 @@
 namespace covidSim.Models
 {
-    public class HouseCoordinates
+    public class BuildingCoordinates
     {
-        public HouseCoordinates(Vec leftTopCorner)
+        public BuildingCoordinates(Vec leftTopCorner)
         {
             LeftTopCorner = leftTopCorner;
         }

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using covidSim.Models;
+using covidSim.Models.Enums;
 
 namespace covidSim.Services
 {
@@ -44,15 +46,15 @@ namespace covidSim.Services
         {
             while (true)
             {
-                var homeId = _random.Next(CityMap.HouseAmount);
+                var homeId = _random.Next(CityMap.BuildingAmount);
 
-                if (Map.Houses[homeId].ResidentCount < MaxPeopleInHouse)
+                if (Map.Buildings[homeId].BuildingType == BuildingType.House &&
+                    ((House) Map.Buildings[homeId]).ResidentCount < MaxPeopleInHouse)
                 {
-                    Map.Houses[homeId].ResidentCount++;
+                    ((House) Map.Buildings[homeId]).ResidentCount++;
                     return homeId;
                 }
             }
-
         }
 
         public Game GetNextState()
