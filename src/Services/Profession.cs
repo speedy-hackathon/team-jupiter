@@ -2,6 +2,7 @@
 {
     public enum Profession
     {
-        Doctor
+        Unemployed = 0,
+        Doctor = 1
     }
 }
