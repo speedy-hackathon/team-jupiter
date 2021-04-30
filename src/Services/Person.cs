@@ -62,7 +62,7 @@ namespace covidSim.Services
 
         private void CalcNextPositionForWalkingPerson()
         {
-            var nextPosition = new Vec(0, 0);
+            Vec nextPosition = null;
 
             var xLength = random.Next(MaxDistancePerTurn);
             var yLength = MaxDistancePerTurn - xLength;
