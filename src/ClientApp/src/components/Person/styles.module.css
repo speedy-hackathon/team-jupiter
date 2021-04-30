@@ -11,6 +11,10 @@
   transition: all 1s linear;
 }
 
+.boredPerson {
+  background-color: #0647ec;
+}
+
 .sickPerson {
   background-color: #ec0606;
 }
