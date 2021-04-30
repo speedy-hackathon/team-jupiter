@@ -31,7 +31,8 @@ namespace covidSim.Services
         {
             return Enumerable
                 .Repeat(0, PeopleCount)
-                .Select((_, index) => new Person(index, FindHome(), Map))
+                .Select((_, index) => new Person(index, FindHome(), Map)
+                { Profession = index % 10 == 0 ? Profession.Doctor : Profession.Unemployed })
                 .ToList();
         }
 

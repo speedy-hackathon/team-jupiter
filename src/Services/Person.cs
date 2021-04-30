@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using covidSim.Extensions;
 using covidSim.Models;
 
 namespace covidSim.Services
@@ -10,6 +11,7 @@ namespace covidSim.Services
         public int HomeId;
         public int Id;
         public Vec Position;
+        public Profession Profession;
 
         private const int MaxDistancePerTurn = 30;
         private const int MaxSickTurns = 45;
@@ -48,6 +50,7 @@ namespace covidSim.Services
         {
             if (IsSick) sickTurns++;
             if (sickTurns > MaxSickTurns) IsSick = false;
+            ExecuteWork();
             switch (state)
             {
                 case PersonState.AtHome:
@@ -62,6 +65,14 @@ namespace covidSim.Services
                     CalcNextPositionForGoingHomePerson();
                     break;
             }
+        }
+
+        private void ExecuteWork()
+        {
+            if (Profession == Profession.Doctor)
+                Game.Instance.People
+                    .Where(p => p.IsSick && GetDistanceTo(p) <= 7)
+                    .ForEach(p => p.IsSick = false);
         }
 
         private void CalcNextStepForPersonAtHome()
