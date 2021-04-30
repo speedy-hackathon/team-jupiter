@@ -9,7 +9,7 @@ namespace covidSim.Services
         private const int MaxDistancePerTurn = 30;
         private static Random random = new Random();
         private PersonState state = PersonState.AtHome;
-        private PersonHealthState healthState = PersonHealthState.Healthy;
+        public PersonHealthState HealthState = PersonHealthState.Healthy;
         private int sickTurns;
         private const int MaxSickTurns = 45;
         private int deathTurns;
@@ -25,7 +25,7 @@ namespace covidSim.Services
             var x = HomeCoords.X + random.Next(HouseCoordinates.Width);
             var y = HomeCoords.Y + random.Next(HouseCoordinates.Height);
             Position = new Vec(x, y);
-            if (random.NextDouble() < 0.05) healthState = PersonHealthState.Healthy;
+            if (random.NextDouble() < 0.05) HealthState = PersonHealthState.Healthy;
         }
 
         public int Id;
@@ -37,17 +37,17 @@ namespace covidSim.Services
 
         public void CalcNextStep()
         {
-            if (healthState == PersonHealthState.Sick)
+            if (HealthState == PersonHealthState.Sick)
             {
                 sickTurns++;
                 if (sickTurns > MaxSickTurns)
                 {
                     sickTurns = 0;
-                    healthState = PersonHealthState.Healthy;
+                    HealthState = PersonHealthState.Healthy;
                 }
-                else if (random.NextDouble() < DeathProbability) healthState = PersonHealthState.Dead;
+                else if (random.NextDouble() < DeathProbability) HealthState = PersonHealthState.Dead;
             }
-            if (healthState == PersonHealthState.Dead) deathTurns++;
+            if (HealthState == PersonHealthState.Dead) deathTurns++;
             else
             {
                 switch (state)
