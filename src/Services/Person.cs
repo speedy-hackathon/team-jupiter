@@ -13,9 +13,6 @@ namespace covidSim.Services
 
         private const int MaxDistancePerTurn = 30;
         private const int MaxSickTurns = 45;
-        private int deathTurns;
-        private const int MaxDeathTurns = 10;
-        private const double DeathProbability = 0.00003;
         private static readonly Random random = new Random();
         private int sickTurns;
         private PersonState state = PersonState.AtHome;
@@ -30,71 +27,70 @@ namespace covidSim.Services
             var x = HomeCoords.X + random.Next(HouseCoordinates.Width);
             var y = HomeCoords.Y + random.Next(HouseCoordinates.Height);
             Position = new Vec(x, y);
-            if (random.NextDouble() < 0.05) HealthState = PersonHealthState.Sick;
+            IsSick = random.NextDouble() < 0.05;
+            stepsInHome = 0;
         }
 
-        public PersonHealthState HealthState = PersonHealthState.Healthy;
-
-        public bool ShouldBeRemoved() => deathTurns > MaxDeathTurns;
         public bool IsBored
         {
             get => stepsInHome >= 5;
             set => stepsInHome = value ? 5 : 0;
         }
 
+
+        public bool IsSick
+        {
+            get => sickTurns >= 0;
+            set => sickTurns = value ? 0 : -1;
+        }
+
         public void CalcNextStep()
         {
-            if (HealthState == PersonHealthState.Sick)
+            if (IsSick) sickTurns++;
+            if (sickTurns > MaxSickTurns) IsSick = false;
+            switch (state)
             {
-                sickTurns++;
-                if (sickTurns > MaxSickTurns)
-                {
-                    sickTurns = 0;
-                    HealthState = PersonHealthState.Healthy;
-                }
-                else if (random.NextDouble() < DeathProbability) HealthState = PersonHealthState.Dead;
-            }
-            if (HealthState == PersonHealthState.Dead) deathTurns++;
-            else
-            {
-                switch (state)
-                {
-                    case PersonState.AtHome:
-                        CalcNextStepForPersonAtHome();
-                        CalcSickStateForPersonAtHome();
-                        break;
-                    case PersonState.Walking:
-                        CalcNextPositionForWalkingPerson();
-                        CalcSickStateForWalkingPerson();
-                        break;
-                    case PersonState.GoingHome:
-                        CalcNextPositionForGoingHomePerson();
-                        break;
-                }
+                case PersonState.AtHome:
+                    CalcNextStepForPersonAtHome();
+                    CalcSickStateForPersonAtHome();
+                    break;
+                case PersonState.Walking:
+                    CalcNextPositionForWalkingPerson();
+                    CalcSickStateForWalkingPerson();
+                    break;
+                case PersonState.GoingHome:
+                    CalcNextPositionForGoingHomePerson();
+                    break;
             }
         }
 
         private void CalcNextStepForPersonAtHome()
         {
             var goingWalk = random.NextDouble() < 0.005;
-            if (!goingWalk) CalcNextPositionForPersonWalkingAtHome();
+            if (!goingWalk)
+            {
+                stepsInHome++;
+                CalcNextPositionForPersonWalkingAtHome();
+                return;
+            }
 
             state = PersonState.Walking;
+            IsBored = false;
             CalcNextPositionForWalkingPerson();
         }
 
         private void CalcSickStateForPersonAtHome()
         {
-            if (HealthState == PersonHealthState.Sick)
+            if (IsSick)
                 return;
-            var thereAreSickPersonsInHome = Game.Instance.People.Any(x => x.HealthState == PersonHealthState.Sick
+            var thereAreSickPersonsInHome = Game.Instance.People.Any(x => x.IsSick
                                                                           && x.state == PersonState.AtHome
                                                                           && x.HomeId == HomeId);
             if (thereAreSickPersonsInHome)
             {
                 var startsSick = random.NextDouble() < 0.5;
                 if (startsSick)
-                    HealthState = PersonHealthState.Sick;
+                    IsSick = true;
             }
         }
 
@@ -128,14 +124,14 @@ namespace covidSim.Services
 
         private void CalcSickStateForWalkingPerson()
         {
-            if (HealthState == PersonHealthState.Sick)
+            if (IsSick)
                 return;
             var closePersons = Game.Instance.People.Where(other => GetDistanceTo(other) < 7);
-            var sickClosePersons = closePersons.Count(other => other.HealthState == PersonHealthState.Sick);
+            var sickClosePersons = closePersons.Count(other => other.IsSick);
             for (var i = 0; i < sickClosePersons; i++)
             {
                 if (random.Next() % 2 != 0) continue;
-                HealthState = PersonHealthState.Sick;
+                IsSick = true;
                 return;
             }
         }
