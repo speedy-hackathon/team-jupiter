@@ -28,6 +28,7 @@ namespace covidSim.Services
         public int HomeId;
         public Vec Position;
         public Vec HomeCoords;
+
         public bool IsSick
         {
             get => sickTurns >= 0;
@@ -45,6 +46,7 @@ namespace covidSim.Services
                     break;
                 case PersonState.Walking:
                     CalcNextPositionForWalkingPerson();
+                    CalcStateForWalkingPerson();
                     break;
                 case PersonState.GoingHome:
                     CalcNextPositionForGoingHomePerson();
@@ -91,6 +93,27 @@ namespace covidSim.Services
             {
                 CalcNextPositionForWalkingPerson();
             }
+        }
+
+        private void CalcStateForWalkingPerson()
+        {
+            if (IsSick)
+                return;
+            var closePersons = Game.Instance.People.Where(other => this.Distance(other) < 7);
+            var sickClosePersons =
+                closePersons.Count(other => other.IsSick);
+            for (var i = 0; i < sickClosePersons; i++)
+            {
+                if (random.Next() % 2 != 0) continue;
+                IsSick = true;
+                return;
+            }
+        }
+
+        private double Distance(Person other)
+        {
+            return Math.Sqrt((Position.X - other.Position.X) * (Position.X - other.Position.X) +
+                             (Position.Y - other.Position.Y) * (Position.Y - other.Position.Y));
         }
 
         private bool IsCorrectPosition(Vec pos)
