@@ -12,7 +12,7 @@ namespace covidSim.Services
 
         private static Game _gameInstance;
         private static Random _random = new Random();
-        
+
         public const int PeopleCount = 320;
         public const int FieldWidth = 1000;
         public const int FieldHeight = 500;
@@ -35,6 +35,11 @@ namespace covidSim.Services
                 .ToList();
         }
 
+        public void Reset()
+        {
+            _gameInstance = new Game();
+        }
+
         private int FindHome()
         {
             while (true)
@@ -47,7 +52,7 @@ namespace covidSim.Services
                     return homeId;
                 }
             }
-            
+
         }
 
         public Game GetNextState()
