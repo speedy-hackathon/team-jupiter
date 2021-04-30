@@ -41,14 +41,15 @@ namespace covidSim.Services
 
         public bool IsSick
         {
-            get => sickTurns >= 0;
-            set => sickTurns = value ? 0 : -1;
+            get => sickTurns >= 0 ;
+            set => sickTurns = value && Profession != Profession.Doctor ? 0 : -1;
         }
 
         public void CalcNextStep()
         {
             if (IsSick) sickTurns++;
             if (sickTurns > MaxSickTurns) IsSick = false;
+
             switch (state)
             {
                 case PersonState.AtHome:
