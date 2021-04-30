@@ -51,6 +51,7 @@ namespace covidSim.Services
             {
                 case PersonState.AtHome:
                     CalcNextStepForPersonAtHome();
+                    CalcSickStateForPersonAtHome();
                     break;
                 case PersonState.Walking:
                     CalcNextPositionForWalkingPerson();
@@ -74,6 +75,21 @@ namespace covidSim.Services
             state = PersonState.Walking;
             IsBored = false;
             CalcNextPositionForWalkingPerson();
+        }
+
+        private void CalcSickStateForPersonAtHome()
+        {
+            if (IsSick)
+                return;
+            var thereAreSickPersonsInHome = Game.Instance.People.Any(x => x.IsSick
+                                                                          && x.state == PersonState.AtHome
+                                                                          && x.HomeId == HomeId);
+            if (thereAreSickPersonsInHome)
+            {
+                var startsSick = random.NextDouble() < 0.5;
+                if (startsSick)
+                    IsSick = true;
+            }
         }
 
         private void CalcNextPositionForPersonWalkingAtHome()
