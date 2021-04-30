@@ -11,6 +11,8 @@ namespace covidSim.Services
         private PersonState state = PersonState.AtHome;
         private int sickTurns;
         private const int MaxSickTurns = 45;
+        private int deathTurns;
+        private const int MaxDeathTurns = 10;
         private const double DeathProbability = 0.00003;
 
         public Person(int id, int homeId, CityMap map)
@@ -35,17 +37,24 @@ namespace covidSim.Services
             set => sickTurns = value ? 0 : -1;
         }
 
-        public bool IsDead;
+        public bool IsDead
+        {
+            get => deathTurns >= 0;
+            set => deathTurns = value ? 0 : -1;
+        }
+
+        public bool ShouldBeRemoved() => deathTurns > MaxDeathTurns;
 
         public void CalcNextStep()
         {
             if (IsSick)
             {
                 sickTurns++;
-                if (!IsDead && random.NextDouble() < DeathProbability) IsDead = true;
+                if (sickTurns > MaxSickTurns) IsSick = false;
+                else if (!IsDead && random.NextDouble() < DeathProbability) IsDead = true;
             }
-            if (sickTurns > MaxSickTurns) IsSick = false;
-            if (!IsDead)
+            if (IsDead) deathTurns++;
+            else
             {
                 switch (state)
                 {
