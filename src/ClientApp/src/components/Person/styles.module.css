@@ -10,3 +10,7 @@
   border-radius: 50%;
   transition: all 1s linear;
 }
+
+.sickPerson {
+  background-color: #ec0606;
+}
