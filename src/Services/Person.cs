@@ -72,6 +72,16 @@ namespace covidSim.Services
                     case PersonState.GoingHome:
                         CalcNextPositionForGoingHomePerson();
                         break;
+                    case PersonState.AtShop:
+                        if (atShopTurns < 10)
+                            atShopTurns++;
+                        else
+                        {
+                            atShopTurns = 0;
+                            state = PersonState.GoingHome;
+                        }
+
+                        break;
                 }
             }
         }
