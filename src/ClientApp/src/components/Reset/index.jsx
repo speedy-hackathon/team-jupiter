@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from '@skbkontur/react-ui';
 import {userActionUrl} from '../../consts/urls';
 
 export const ResetButton = () => {
@@ -12,8 +13,11 @@ export const ResetButton = () => {
     }
 
     return (
-        <div>
-            <button onClick={handleResetButtonClick}>Reset</button>
+        <div style={{
+            textAlign: 'center',
+            marginBottom: `12px`,
+        }}>
+            <Button onClick={handleResetButtonClick} use='danger'>Начать сначала</Button>
         </div>
     );
 };
