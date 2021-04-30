@@ -33,10 +33,6 @@ namespace covidSim.Services
             if (random.NextDouble() < 0.05) HealthState = PersonHealthState.Sick;
         }
 
-        public int Id;
-        public int HomeId;
-        public Vec Position;
-        public Vec HomeCoords;
         public PersonHealthState HealthState = PersonHealthState.Healthy;
 
         public bool ShouldBeRemoved() => deathTurns > MaxDeathTurns;
