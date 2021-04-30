@@ -8,6 +8,7 @@ import errorHandler from "../../utils/errorHandler";
 import Instruction from "../Instruction";
 
 import "./base.css";
+import Settings from "../Settings";
 
 export default class App extends React.Component {
   constructor() {
@@ -33,6 +34,7 @@ export default class App extends React.Component {
         {instructionOpen && <Instruction onClose={this.closeInstruction} />}
         <h1 className={styles.title}>Симулятор COVID</h1>
         <ResetButton />
+        <Settings/>
         <Field map={map} people={people} onClick={this.personClick} />
       </div>
     );
