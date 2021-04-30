@@ -45,17 +45,20 @@ namespace covidSim.Services
                 if (!IsDead && random.NextDouble() < DeathProbability) IsDead = true;
             }
             if (sickTurns > MaxSickTurns) IsSick = false;
-            switch (state)
+            if (!IsDead)
             {
-                case PersonState.AtHome:
-                    CalcNextStepForPersonAtHome();
-                    break;
-                case PersonState.Walking:
-                    CalcNextPositionForWalkingPerson();
-                    break;
-                case PersonState.GoingHome:
-                    CalcNextPositionForGoingHomePerson();
-                    break;
+                switch (state)
+                {
+                    case PersonState.AtHome:
+                        CalcNextStepForPersonAtHome();
+                        break;
+                    case PersonState.Walking:
+                        CalcNextPositionForWalkingPerson();
+                        break;
+                    case PersonState.GoingHome:
+                        CalcNextPositionForGoingHomePerson();
+                        break;
+                }
             }
         }
 
