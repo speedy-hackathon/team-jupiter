@@ -6,14 +6,20 @@ namespace covidSim.Services
 {
     public class Person
     {
+        public Vec HomeCoords;
+        public int HomeId;
+        public int Id;
+        public Vec Position;
+
         private const int MaxDistancePerTurn = 30;
-        private static Random random = new Random();
-        private PersonState state = PersonState.AtHome;
-        private int sickTurns;
         private const int MaxSickTurns = 45;
         private int deathTurns;
         private const int MaxDeathTurns = 10;
         private const double DeathProbability = 0.00003;
+        private static readonly Random random = new Random();
+        private int sickTurns;
+        private PersonState state = PersonState.AtHome;
+        private int stepsInHome;
 
         public Person(int id, int homeId, CityMap map)
         {
@@ -34,6 +40,11 @@ namespace covidSim.Services
         public PersonHealthState HealthState = PersonHealthState.Healthy;
 
         public bool ShouldBeRemoved() => deathTurns > MaxDeathTurns;
+        public bool IsBored
+        {
+            get => stepsInHome >= 5;
+            set => stepsInHome = value ? 5 : 0;
+        }
 
         public void CalcNextStep()
         {
@@ -54,9 +65,11 @@ namespace covidSim.Services
                 {
                     case PersonState.AtHome:
                         CalcNextStepForPersonAtHome();
+                        CalcSickStateForPersonAtHome();
                         break;
                     case PersonState.Walking:
                         CalcNextPositionForWalkingPerson();
+                        CalcSickStateForWalkingPerson();
                         break;
                     case PersonState.GoingHome:
                         CalcNextPositionForGoingHomePerson();
@@ -72,6 +85,21 @@ namespace covidSim.Services
 
             state = PersonState.Walking;
             CalcNextPositionForWalkingPerson();
+        }
+
+        private void CalcSickStateForPersonAtHome()
+        {
+            if (HealthState == PersonHealthState.Sick)
+                return;
+            var thereAreSickPersonsInHome = Game.Instance.People.Any(x => x.HealthState == PersonHealthState.Sick
+                                                                          && x.state == PersonState.AtHome
+                                                                          && x.HomeId == HomeId);
+            if (thereAreSickPersonsInHome)
+            {
+                var startsSick = random.NextDouble() < 0.5;
+                if (startsSick)
+                    HealthState = PersonHealthState.Sick;
+            }
         }
 
         private void CalcNextPositionForPersonWalkingAtHome()
@@ -97,13 +125,29 @@ namespace covidSim.Services
 
 
             if (isCoordInField(nextPosition))
-            {
                 Position = nextPosition;
-            }
             else
-            {
                 CalcNextPositionForWalkingPerson();
+        }
+
+        private void CalcSickStateForWalkingPerson()
+        {
+            if (HealthState == PersonHealthState.Sick)
+                return;
+            var closePersons = Game.Instance.People.Where(other => GetDistanceTo(other) < 7);
+            var sickClosePersons = closePersons.Count(other => other.HealthState == PersonHealthState.Sick);
+            for (var i = 0; i < sickClosePersons; i++)
+            {
+                if (random.Next() % 2 != 0) continue;
+                HealthState = PersonHealthState.Sick;
+                return;
             }
+        }
+
+        private double GetDistanceTo(Person other)
+        {
+            return Math.Sqrt((Position.X - other.Position.X) * (Position.X - other.Position.X) +
+                             (Position.Y - other.Position.Y) * (Position.Y - other.Position.Y));
         }
 
         private bool IsCorrectPosition(Vec pos)
@@ -154,12 +198,12 @@ namespace covidSim.Services
 
         private Vec[] ChooseDirection()
         {
-            var directions = new Vec[]
+            var directions = new[]
             {
                 new Vec(-1, -1),
                 new Vec(-1, 1),
                 new Vec(1, -1),
-                new Vec(1, 1),
+                new Vec(1, 1)
             };
             return directions.OrderBy(x => random.Next()).ToArray();
         }

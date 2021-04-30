@@ -12,8 +12,11 @@ export const ResetButton = () => {
     }
 
     return (
-        <div>
-            <button onClick={handleResetButtonClick}>Reset</button>
+        <div style={{
+            textAlign: 'center',
+            marginBottom: `12px`,
+        }}>
+            <button onClick={handleResetButtonClick} use='default'>Начать сначала</button>
         </div>
     );
 };
