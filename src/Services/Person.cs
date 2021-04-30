@@ -79,8 +79,14 @@ namespace covidSim.Services
         private void CalcNextStepForPersonAtHome()
         {
             var goingWalk = random.NextDouble() < 0.005;
-            if (!goingWalk) CalcNextPositionForPersonWalkingAtHome();
+            if (!goingWalk)
+            {
+                CalcNextPositionForPersonWalkingAtHome();
+                stepsInHome++;
+                return;
+            }
 
+            stepsInHome = 0;
             state = PersonState.Walking;
             CalcNextPositionForWalkingPerson();
         }
