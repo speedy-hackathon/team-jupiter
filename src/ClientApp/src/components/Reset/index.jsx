@@ -17,7 +17,7 @@ export const ResetButton = () => {
             textAlign: 'center',
             marginBottom: `12px`,
         }}>
-            <Button onClick={handleResetButtonClick} use='danger'>Начать сначала</Button>
+            <Button onClick={handleResetButtonClick} use='default'>Начать сначала</Button>
         </div>
     );
 };
