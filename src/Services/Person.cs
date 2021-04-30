@@ -25,6 +25,7 @@ namespace covidSim.Services
             var y = HomeCoords.Y + random.Next(HouseCoordinates.Height);
             Position = new Vec(x, y);
             IsSick = random.NextDouble() < 0.05;
+            IsDead = false;
         }
 
         public int Id;
