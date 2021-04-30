@@ -11,6 +11,7 @@ namespace covidSim.Services
         private PersonState state = PersonState.AtHome;
         private int sickTurns;
         private const int MaxSickTurns = 45;
+        private int stepsInHome;
 
         public Person(int id, int homeId, CityMap map)
         {
@@ -29,8 +30,13 @@ namespace covidSim.Services
         public int HomeId;
         public Vec Position;
         public Vec HomeCoords;
-        public bool IsBored;
-        private int stepsInHome;
+
+        public bool IsBored
+        {
+            get => stepsInHome >= 5;
+            set => stepsInHome = value ? 5 : 0;
+        }
+
         public bool IsSick
         {
             get => sickTurns >= 0;
@@ -60,14 +66,13 @@ namespace covidSim.Services
             var goingWalk = random.NextDouble() < 0.005;
             if (!goingWalk)
             {
-                if (stepsInHome++ >= 5) IsBored = true;
+                stepsInHome++;
                 CalcNextPositionForPersonWalkingAtHome();
                 return;
             }
 
             state = PersonState.Walking;
             IsBored = false;
-            stepsInHome = 0;
             CalcNextPositionForWalkingPerson();
         }
 
