@@ -13,7 +13,7 @@ namespace covidSim.Services
         private static Game _gameInstance;
         private static Random _random = new Random();
         
-        public const int PeopleCount = 300;
+        public const int PeopleCount = 320;
         public const int FieldWidth = 1000;
         public const int FieldHeight = 500;
         public const int MaxPeopleInHouse = 10;
