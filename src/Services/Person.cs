@@ -55,7 +55,7 @@ namespace covidSim.Services
                     break;
                 case PersonState.Walking:
                     CalcNextPositionForWalkingPerson();
-                    CalcStateForWalkingPerson();
+                    CalcSickStateForWalkingPerson();
                     break;
                 case PersonState.GoingHome:
                     CalcNextPositionForGoingHomePerson();
@@ -110,7 +110,7 @@ namespace covidSim.Services
             }
         }
 
-        private void CalcStateForWalkingPerson()
+        private void CalcSickStateForWalkingPerson()
         {
             if (IsSick)
                 return;
