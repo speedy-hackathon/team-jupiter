@@ -19,6 +19,7 @@ namespace covidSim.Services
             var y = HomeCoords.Y + random.Next(HouseCoordinates.Height);
             Position = new Vec(x, y);
             IsSick = random.NextDouble() < 0.05;
+            stepsInHome = 0;
         }
 
         public int Id;
@@ -26,6 +27,9 @@ namespace covidSim.Services
         public Vec Position;
         public Vec HomeCoords;
         public bool IsSick;
+        public bool IsBored;
+
+        private int stepsInHome;
 
         public void CalcNextStep()
         {
@@ -46,9 +50,15 @@ namespace covidSim.Services
         private void CalcNextStepForPersonAtHome()
         {
             var goingWalk = random.NextDouble() < 0.005;
-            if (!goingWalk) CalcNextPositionForPersonWalkingAtHome();
+            if (!goingWalk)
+            {
+                if (stepsInHome++ >= 5) IsBored = true;
+                CalcNextPositionForPersonWalkingAtHome();
+            }
 
             state = PersonState.Walking;
+            IsBored = false;
+            stepsInHome = 0;
             CalcNextPositionForWalkingPerson();
         }
 
