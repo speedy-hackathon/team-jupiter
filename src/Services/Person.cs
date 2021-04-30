@@ -8,6 +8,8 @@ namespace covidSim.Services
         private const int MaxDistancePerTurn = 30;
         private static Random random = new Random();
         private PersonState state = PersonState.AtHome;
+        private int sickTurns;
+        private const int MaxSickTurns = 45;
 
         public Person(int id, int homeId, CityMap map)
         {
@@ -25,10 +27,16 @@ namespace covidSim.Services
         public int HomeId;
         public Vec Position;
         public Vec HomeCoords;
-        public bool IsSick;
+        public bool IsSick
+        {
+            get => sickTurns >= 0;
+            set => sickTurns = value ? 0 : -1;
+        }
 
         public void CalcNextStep()
         {
+            if (IsSick) sickTurns++;
+            if (sickTurns > MaxSickTurns) IsSick = false;
             switch (state)
             {
                 case PersonState.AtHome:
