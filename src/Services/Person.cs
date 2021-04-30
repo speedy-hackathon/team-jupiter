@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using covidSim.Models;
 
@@ -10,6 +11,7 @@ namespace covidSim.Services
         public int HomeId;
         public int Id;
         public Vec Position;
+        public List<Vec> WalkingTrack;
 
         private const int MaxDistancePerTurn = 30;
         private const int MaxSickTurns = 45;
@@ -22,6 +24,7 @@ namespace covidSim.Services
         {
             Id = id;
             HomeId = homeId;
+            WalkingTrack = new List<Vec>();
 
             HomeCoords = map.Houses[homeId].Coordinates.LeftTopCorner;
             var x = HomeCoords.X + random.Next(HouseCoordinates.Width);
@@ -36,8 +39,7 @@ namespace covidSim.Services
             get => stepsInHome >= 5;
             set => stepsInHome = value ? 5 : 0;
         }
-
-
+        
         public bool IsSick
         {
             get => sickTurns >= 0;
@@ -46,6 +48,8 @@ namespace covidSim.Services
 
         public void CalcNextStep()
         {
+            WalkingTrack.Add(Position);
+
             if (IsSick) sickTurns++;
             if (sickTurns > MaxSickTurns) IsSick = false;
             switch (state)
