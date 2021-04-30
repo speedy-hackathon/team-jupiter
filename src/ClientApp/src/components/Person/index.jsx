@@ -10,8 +10,15 @@ export default function Person({person, onClick}) {
 
     return (
         <div
+
             className={classNames(styles.root, { [styles.sickPerson]: person.isSick, [styles.boredPerson]: person.isBored, [styles.doctor]: isDoctor })}
             style={{ left: `${x}%`, top: `${y}%` }}
+            className={classNames(styles.root, {
+                [styles.sickPerson]: person.isSick,
+                [styles.boredPerson]: person.isBored,
+                [styles.deadPerson]: person.isDead,
+            })}
+            style={{left: `${x}%`, top: `${y}%`}}
             onClick={() => onClick(person.id)}
         />
     );

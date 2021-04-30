@@ -11,11 +11,15 @@ namespace covidSim.Services
         public int HomeId;
         public int Id;
         public Vec Position;
+        public PersonHealthState HealthState = PersonHealthState.Healthy;
 
         private const int MaxDistancePerTurn = 30;
         private const int MaxSickTurns = 45;
+        private const int MaxDeathTurns = 10;
+        private const double DeathChance = 0.00003;
         private static readonly Random random = new Random();
         private int sickTurns;
+        private int deathTurns;
         private int atShopTurns;
         private PersonState state = PersonState.AtHome;
         private int stepsInHome;
@@ -42,29 +46,55 @@ namespace covidSim.Services
 
         public bool IsSick
         {
-            get => sickTurns >= 0;
-            set => sickTurns = value ? 0 : -1;
+            get => HealthState == PersonHealthState.Sick;
+            set
+            {
+                if (!IsSick && value) sickTurns = 0;
+                HealthState = value ? PersonHealthState.Sick : PersonHealthState.Healthy;
+                if (!value) sickTurns = -1;
+            }
         }
+
+        public bool IsDead
+        {
+            get => HealthState == PersonHealthState.Dead;
+            set
+            {
+                if (!IsDead && value) deathTurns = 0;
+                HealthState = value ? PersonHealthState.Dead : PersonHealthState.Healthy;
+                if (!value) deathTurns = -1;
+            }
+        }
+
+        public bool ShouldBeRemoved() => deathTurns > MaxDeathTurns;
 
         public void CalcNextStep()
         {
-            if (IsSick) sickTurns++;
-            if (sickTurns > MaxSickTurns) IsSick = false;
-            
-                switch (state)
-                {
-                    case PersonState.AtHome:
-                        CalcNextStepForPersonAtHome();
-                        CalcSickStateForPersonAtHome();
-                        break;
-                    case PersonState.Walking:
-                        CalcNextPositionForWalkingPerson();
-                        CalcSickStateForWalkingPerson();
-                        break;
-                    case PersonState.GoingHome:
-                        CalcNextPositionForGoingHomePerson();
-                        break;
-                    case PersonState.AtShop:
+            if (IsSick)
+            {
+                sickTurns++;
+                if (sickTurns > MaxSickTurns) IsSick = false;
+                else if (random.NextDouble() < DeathChance) IsDead = true;
+            }
+            else if (IsDead)
+            {
+                deathTurns++;
+                return;
+            }
+            switch (state)
+            {
+                case PersonState.AtHome:
+                    CalcNextStepForPersonAtHome();
+                    CalcSickStateForPersonAtHome();
+                    break;
+                case PersonState.Walking:
+                    CalcNextPositionForWalkingPerson();
+                    CalcSickStateForWalkingPerson();
+                    break;
+                case PersonState.GoingHome:
+                    CalcNextPositionForGoingHomePerson();
+                    break;
+                case PersonState.AtShop:
                         if (atShopTurns < 10)
                             atShopTurns++;
                         else
@@ -74,7 +104,6 @@ namespace covidSim.Services
                         }
 
                         break;
-                
             }
         }
 
