@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "./style.module.css";
 import Field from "../Field";
+import {ResetButton} from '../Reset';
 import { DELAY, MAX_HEIGHT, MAX_WIDTH } from "../../consts/sizes";
 import { gameStateUrl, userActionUrl } from "../../consts/urls";
 import errorHandler from "../../utils/errorHandler";
@@ -31,6 +32,7 @@ export default class App extends React.Component {
       <div className={styles.root}>
         {instructionOpen && <Instruction onClose={this.closeInstruction} />}
         <h1 className={styles.title}>Симулятор COVID</h1>
+        <ResetButton />
         <Field map={map} people={people} onClick={this.personClick} />
       </div>
     );
