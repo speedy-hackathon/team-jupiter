@@ -9,6 +9,7 @@ namespace covidSim.Services
         private const int MaxDistancePerTurn = 30;
         private static Random random = new Random();
         private PersonState state = PersonState.AtHome;
+        private PersonHealthState healthState = PersonHealthState.Healthy;
         private int sickTurns;
         private const int MaxSickTurns = 45;
         private int deathTurns;
@@ -24,37 +25,29 @@ namespace covidSim.Services
             var x = HomeCoords.X + random.Next(HouseCoordinates.Width);
             var y = HomeCoords.Y + random.Next(HouseCoordinates.Height);
             Position = new Vec(x, y);
-            IsSick = random.NextDouble() < 0.05;
-            IsDead = false;
+            if (random.NextDouble() < 0.05) healthState = PersonHealthState.Healthy;
         }
 
         public int Id;
         public int HomeId;
         public Vec Position;
         public Vec HomeCoords;
-        public bool IsSick
-        {
-            get => sickTurns >= 0;
-            set => sickTurns = value ? 0 : -1;
-        }
-
-        public bool IsDead
-        {
-            get => deathTurns >= 0;
-            set => deathTurns = value ? 0 : -1;
-        }
 
         public bool ShouldBeRemoved() => deathTurns > MaxDeathTurns;
 
         public void CalcNextStep()
         {
-            if (IsSick)
+            if (healthState == PersonHealthState.Sick)
             {
                 sickTurns++;
-                if (sickTurns > MaxSickTurns) IsSick = false;
-                else if (!IsDead && random.NextDouble() < DeathProbability) IsDead = true;
+                if (sickTurns > MaxSickTurns)
+                {
+                    sickTurns = 0;
+                    healthState = PersonHealthState.Healthy;
+                }
+                else if (random.NextDouble() < DeathProbability) healthState = PersonHealthState.Dead;
             }
-            if (IsDead) deathTurns++;
+            if (healthState == PersonHealthState.Dead) deathTurns++;
             else
             {
                 switch (state)
