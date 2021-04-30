@@ -53,7 +53,8 @@ namespace covidSim.Services
             if (!goingWalk)
             {
                 if (stepsInHome++ >= 5) IsBored = true;
-                //CalcNextPositionForPersonWalkingAtHome();
+                CalcNextPositionForPersonWalkingAtHome();
+                return;
             }
 
             state = PersonState.Walking;
