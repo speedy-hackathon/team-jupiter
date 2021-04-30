@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using covidSim.Models;
 
 namespace covidSim.Services
@@ -69,11 +70,18 @@ namespace covidSim.Services
 
         private void CalcNextPositionForWalkingPerson()
         {
+            Vec nextPosition = null;
+
             var xLength = random.Next(MaxDistancePerTurn);
             var yLength = MaxDistancePerTurn - xLength;
-            var direction = ChooseDirection();
-            var delta = new Vec(xLength * direction.X, yLength * direction.Y);
-            var nextPosition = new Vec(Position.X + delta.X, Position.Y + delta.Y);
+            foreach (var direction in ChooseDirection())
+            {
+                var delta = new Vec(xLength * direction.X, yLength * direction.Y);
+                nextPosition = new Vec(Position.X + delta.X, Position.Y + delta.Y);
+                if (IsCorrectPosition(nextPosition))
+                    break;
+            }
+
 
             if (isCoordInField(nextPosition))
             {
@@ -83,6 +91,15 @@ namespace covidSim.Services
             {
                 CalcNextPositionForWalkingPerson();
             }
+        }
+
+        private bool IsCorrectPosition(Vec pos)
+        {
+            return !Game.Instance.Map.Houses.Where((x, i) => i != HomeId)
+                .Any(x => x.Coordinates.LeftTopCorner.X < pos.X
+                          && x.Coordinates.LeftTopCorner.X + HouseCoordinates.Width > pos.X
+                          && x.Coordinates.LeftTopCorner.Y < pos.Y
+                          && x.Coordinates.LeftTopCorner.Y + HouseCoordinates.Height > pos.Y);
         }
 
         private void CalcNextPositionForGoingHomePerson()
@@ -122,7 +139,7 @@ namespace covidSim.Services
             CalcNextPositionForGoingHomePerson();
         }
 
-        private Vec ChooseDirection()
+        private Vec[] ChooseDirection()
         {
             var directions = new Vec[]
             {
@@ -131,8 +148,7 @@ namespace covidSim.Services
                 new Vec(1, -1),
                 new Vec(1, 1),
             };
-            var index = random.Next(directions.Length);
-            return directions[index];
+            return directions.OrderBy(x => random.Next()).ToArray();
         }
 
         private bool isCoordInField(Vec vec)
