@@ -10,6 +10,7 @@ namespace covidSim.Services
         public int HomeId;
         public int Id;
         public Vec Position;
+        public Profession Profession;
 
         private const int MaxDistancePerTurn = 30;
         private const int MaxSickTurns = 45;
