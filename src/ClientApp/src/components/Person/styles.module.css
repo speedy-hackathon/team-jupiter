@@ -1,0 +1,12 @@
+.root {
+  position: absolute;
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  margin-top: -7px;
+  background-color: #d2b1e7;
+  border: 1px solid darkmagenta;
+  border-radius: 50%;
+  transition: all 1s linear;
+}

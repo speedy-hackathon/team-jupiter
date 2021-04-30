@@ -1,0 +1,12 @@
+.root {
+  position: relative;
+  box-sizing: border-box;
+  border: 1px solid black;
+  margin: 0 40px;
+}
+
+.root:before {
+  content: "";
+  display: inline-block;
+  padding-top: 50%;
+}
