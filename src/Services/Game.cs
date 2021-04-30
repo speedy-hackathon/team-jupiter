@@ -76,6 +76,8 @@ namespace covidSim.Services
             {
                 person.CalcNextStep();
             }
+
+            People.RemoveAll(person => person.ShouldBeRemoved());
         }
     }
 }
