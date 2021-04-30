@@ -9,7 +9,6 @@ namespace covidSim.Services
         private const int MaxDistancePerTurn = 30;
         private static Random random = new Random();
         private PersonState state = PersonState.AtHome;
-        public PersonHealthState HealthState = PersonHealthState.Healthy;
         private int sickTurns;
         private const int MaxSickTurns = 45;
         private int deathTurns;
@@ -32,6 +31,7 @@ namespace covidSim.Services
         public int HomeId;
         public Vec Position;
         public Vec HomeCoords;
+        public PersonHealthState HealthState = PersonHealthState.Healthy;
 
         public bool ShouldBeRemoved() => deathTurns > MaxDeathTurns;
 
