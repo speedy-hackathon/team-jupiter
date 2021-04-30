@@ -14,6 +14,9 @@ namespace covidSim.Services
 
         private const int MaxDistancePerTurn = 30;
         private const int MaxSickTurns = 45;
+        private int deathTurns;
+        private const int MaxDeathTurns = 10;
+        private const double DeathProbability = 0.00003;
         private static readonly Random random = new Random();
         private int sickTurns;
         private int atShopTurns;
@@ -29,102 +32,80 @@ namespace covidSim.Services
             var x = HomeCoords.X + random.Next(BuildingCoordinates.Width);
             var y = HomeCoords.Y + random.Next(BuildingCoordinates.Height);
             Position = new Vec(x, y);
-            IsSick = random.NextDouble() < 0.05;
-            stepsInHome = 0;
+            if (random.NextDouble() < 0.05) HealthState = PersonHealthState.Sick;
         }
 
+        public PersonHealthState HealthState = PersonHealthState.Healthy;
+
+        public bool ShouldBeRemoved() => deathTurns > MaxDeathTurns;
         public bool IsBored
         {
             get => stepsInHome >= 5;
             set => stepsInHome = value ? 5 : 0;
         }
 
-
-        public bool IsSick
-        {
-            get => sickTurns >= 0;
-            set => sickTurns = value ? 0 : -1;
-        }
-
         public void CalcNextStep()
         {
-            if (IsSick) sickTurns++;
-            if (sickTurns > MaxSickTurns) IsSick = false;
-            switch (state)
+            if (HealthState == PersonHealthState.Sick)
             {
-                case PersonState.AtHome:
-                    CalcNextStepForPersonAtHome();
-                    CalcSickStateForPersonAtHome();
-                    break;
-                case PersonState.Walking:
-                    CalcNextPositionForWalkingPerson();
-                    CalcSickStateForWalkingPerson();
-                    break;
-                case PersonState.GoingHome:
-                    CalcNextPositionForGoingHomePerson();
-                    break;
-                case PersonState.GoingShop:
-                    CalcNextPositionForGoingShopPerson();
-                    break;
-                case PersonState.AtShop:
-                    if (atShopTurns < 10)
-                        atShopTurns++;
-                    else
-                    {
-                        state = PersonState.GoingHome;
+                sickTurns++;
+                if (sickTurns > MaxSickTurns)
+                {
+                    sickTurns = 0;
+                    HealthState = PersonHealthState.Healthy;
+                }
+                else if (random.NextDouble() < DeathProbability) HealthState = PersonHealthState.Dead;
+            }
+            if (HealthState == PersonHealthState.Dead) deathTurns++;
+            else
+            {
+                switch (state)
+                {
+                    case PersonState.AtHome:
+                        CalcNextStepForPersonAtHome();
+                        CalcSickStateForPersonAtHome();
+                        break;
+                    case PersonState.Walking:
+                        CalcNextPositionForWalkingPerson();
+                        CalcSickStateForWalkingPerson();
+                        break;
+                    case PersonState.GoingHome:
                         CalcNextPositionForGoingHomePerson();
-                    }
-
-                    break;
+                        break;
+                }
             }
         }
 
         private void CalcNextStepForPersonAtHome()
         {
             var goingWalk = random.NextDouble() < 0.005;
-            if (!goingWalk)
-            {
-                stepsInHome++;
-                CalcNextPositionForPersonWalkingAtHome();
-                return;
-            }
+            if (!goingWalk) CalcNextPositionForPersonWalkingAtHome();
 
-            IsBored = false;
-            if (random.Next(0, 10) > 3)
-            {
-                state = PersonState.Walking;
-                CalcNextPositionForWalkingPerson();
-            }
-            else
-            {
-                state = PersonState.GoingShop;
-                CalcNextPositionForGoingShopPerson();
-            }
+            state = PersonState.Walking;
+            CalcNextPositionForWalkingPerson();
         }
-
 
         private void CalcSickStateForPersonAtHome()
         {
-            if (IsSick)
+            if (HealthState == PersonHealthState.Sick)
                 return;
-            var thereAreSickPersonsInHome = Game.Instance.People.Any(x => x.IsSick
+            var thereAreSickPersonsInHome = Game.Instance.People.Any(x => x.HealthState == PersonHealthState.Sick
                                                                           && x.state == PersonState.AtHome
                                                                           && x.HomeId == HomeId);
             if (thereAreSickPersonsInHome)
             {
                 var startsSick = random.NextDouble() < 0.5;
                 if (startsSick)
-                    IsSick = true;
+                    HealthState = PersonHealthState.Sick;
             }
         }
 
         private void CalcNextPositionForPersonWalkingAtHome()
         {
-            var newX = HomeCoords.X + random.Next(BuildingCoordinates.Width);
-            var newY = HomeCoords.Y + random.Next(BuildingCoordinates.Height);
+            var newX = HomeCoords.X + random.Next(HouseCoordinates.Width);
+            var newY = HomeCoords.Y + random.Next(HouseCoordinates.Height);
             Position = new Vec(newX, newY);
         }
-
 
         private void CalcNextPositionForWalkingPerson()
         {
@@ -151,7 +132,7 @@ namespace covidSim.Services
         {
             if (IsSick)
                 return;
-            var closePersons = Game.Instance.People.Where(other => GetDistanceTo(other.Position) < 7);
+            var closePersons = Game.Instance.People.Where(other => GetDistanceTo(other) < 7);
             var sickClosePersons = closePersons.Count(other => other.IsSick);
             for (var i = 0; i < sickClosePersons; i++)
             {
@@ -161,58 +142,27 @@ namespace covidSim.Services
             }
         }
 
-        private double GetDistanceTo(Vec other)
+        private double GetDistanceTo(Person other)
         {
-            return Math.Sqrt((Position.X - other.X) * (Position.X - other.X) +
-                             (Position.Y - other.Y) * (Position.Y - other.Y));
+            return Math.Sqrt((Position.X - other.Position.X) * (Position.X - other.Position.X) +
+                             (Position.Y - other.Position.Y) * (Position.Y - other.Position.Y));
         }
 
         private bool IsCorrectPosition(Vec pos)
         {
-            return !Game.Instance.Map.Buildings.Where((x, i) => i != HomeId)
+            return !Game.Instance.Map.Houses.Where((x, i) => i != HomeId)
                 .Any(x => x.Coordinates.LeftTopCorner.X < pos.X
-                          && x.Coordinates.LeftTopCorner.X + BuildingCoordinates.Width > pos.X
+                          && x.Coordinates.LeftTopCorner.X + HouseCoordinates.Width > pos.X
                           && x.Coordinates.LeftTopCorner.Y < pos.Y
-                          && x.Coordinates.LeftTopCorner.Y + BuildingCoordinates.Height > pos.Y);
-        }
-
-        private void CalcNextPositionForGoingShopPerson()
-        {
-            var game = Game.Instance;
-            var shopCoord = game.Map.Buildings.Where(x => x.BuildingType == BuildingType.Shop)
-                .OrderBy(x => GetDistanceTo(x.Coordinates.LeftTopCorner)).First();
-            var shopCenter = new Vec(shopCoord.Coordinates.LeftTopCorner.X + BuildingCoordinates.Width / 2,
-                shopCoord.Coordinates.LeftTopCorner.Y + BuildingCoordinates.Height / 2);
-
-            var xDiff = shopCenter.X - Position.X;
-            var yDiff = shopCenter.Y - Position.Y;
-            var xDistance = Math.Abs(xDiff);
-            var yDistance = Math.Abs(yDiff);
-
-            var distance = xDistance + yDistance;
-            if (distance <= MaxDistancePerTurn)
-            {
-                Position = shopCenter;
-                state = PersonState.AtShop;
-                atShopTurns = 0;
-                return;
-            }
-
-            var direction = new Vec(Math.Sign(xDiff), Math.Sign(yDiff));
-
-            var xLength = Math.Min(xDistance, MaxDistancePerTurn);
-            var newX = Position.X + xLength * direction.X;
-            var yLength = MaxDistancePerTurn - xLength;
-            var newY = Position.Y + yLength * direction.Y;
-            Position = new Vec(newX, newY);
+                          && x.Coordinates.LeftTopCorner.Y + HouseCoordinates.Height > pos.Y);
         }
 
         private void CalcNextPositionForGoingHomePerson()
         {
             var game = Game.Instance;
-            var homeCoord = game.Map.Buildings[HomeId].Coordinates.LeftTopCorner;
-            var homeCenter = new Vec(homeCoord.X + BuildingCoordinates.Width / 2,
-                homeCoord.Y + BuildingCoordinates.Height / 2);
+            var homeCoord = game.Map.Houses[HomeId].Coordinates.LeftTopCorner;
+            var homeCenter = new Vec(homeCoord.X + HouseCoordinates.Width / 2,
+                homeCoord.Y + HouseCoordinates.Height / 2);
 
             var xDiff = homeCenter.X - Position.X;
             var yDiff = homeCenter.Y - Position.Y;
